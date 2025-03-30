@@ -55,6 +55,9 @@ def get_foreground_window_title():
 # Dictionary to track the state of keys (pressed or released)
 key_states = {}
 
+# global toggle
+toggle = False
+
 def low_level_keyboard_proc(nCode, wParam, lParam):
     if nCode == 0:  # HC_ACTION
         kbd_struct = ctypes.cast(lParam, ctypes.POINTER(KBDLLHOOKSTRUCT)).contents
@@ -65,12 +68,15 @@ def low_level_keyboard_proc(nCode, wParam, lParam):
         if get_foreground_window_title() == WINDOW_TITLE:
             # Handle key press (WM_KEYDOWN) and release (WM_KEYUP)
             if wParam == WM_KEYDOWN:
-                if key in KEY_BINDINGS and not key_states.get(key, False):
+                if vk_code == 123: # Toggle the state of the script on F12 key press
+                    global toggle
+                    toggle = not toggle
+                if key in KEY_BINDINGS and not key_states.get(key, False) and toggle:
                     x, y = KEY_BINDINGS[key]
                     c(x, y)  # Trigger the click function
                     key_states[key] = True  # Mark the key as pressed
                     return 1  # Block the key press
-            elif wParam == 0x0101:  # WM_KEYUP
+            elif wParam == 0x0101 and toggle:  # WM_KEYUP
                 if key in KEY_BINDINGS:
                     key_states[key] = False  # Mark the key as released
 
